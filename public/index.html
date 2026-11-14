@@ -28,6 +28,7 @@
             user-select: none;
             -webkit-user-select: none;
             touch-action: none !important;
+            cursor: move;
         }
         .draggable-element * {
             pointer-events: none; /* Все внутренние теги не перехватывают касания */
@@ -53,7 +54,7 @@
                 <i class="fa-solid fa-broom"></i>
             </button>
             <button id="preview-btn" onclick="togglePreview()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-medium px-2.5 py-1.5 rounded-lg text-xs transition flex items-center shadow-sm">
-                <i class="fa-solid fa-eye mr-1"></i> <span id="preview-btn-text">Превью</span>
+                <i class="fa-solid fa-eye mr-1"></i> <span id="preview-btn-text">Предпросмотр</span>
             </button>
             <button onclick="saveCurrentProjectState()" class="bg-blue-600 hover:bg-blue-700 text-white font-medium px-2.5 py-1.5 rounded-lg text-xs transition flex items-center shadow-sm">
                 <i class="fa-solid fa-floppy-disk mr-1"></i> Сохранить
@@ -294,6 +295,7 @@
         let draggingElementId = null;
         let dragOffsetX = 0;
         let dragOffsetY = 0;
+        let activeElDom = null;
 
         let touchStartX = 0;
         let touchStartY = 0;
@@ -314,10 +316,8 @@
             renderProjectsList();
             if (projects.length > 0) openProject(projects[0].id);
 
-            window.addEventListener('mousemove', handleDragging);
-            window.addEventListener('mouseup', stopDragging);
-            window.addEventListener('touchmove', handleTouchDragging, { passive: false });
-            window.addEventListener('touchend', stopDragging);
+            window.addEventListener('pointermove', handlePointerDragging);
+            window.addEventListener('pointerup', stopPointerDragging);
 
             // Свайп влево для открытия свойств
             mainSwipeArea.addEventListener('touchstart', (e) => {
@@ -326,7 +326,7 @@
             }, { passive: true });
 
             mainSwipeArea.addEventListener('touchend', (e) => {
-                if (isPreviewMode) return;
+                if (isPreviewMode || draggingElementId) return;
                 let touchEndX = e.changedTouches[0].clientX;
                 let touchEndY = e.changedTouches[0].clientY;
                 
@@ -477,7 +477,7 @@
                 elDom.style.borderRadius = (el.radius || 0) + 'px';
 
                 elDom.className = `draggable-element flex items-center justify-center ${
-                    isSelected ? 'element-selected shadow-md cursor-move' : isPreviewMode ? '' : 'hover:outline hover:outline-1 hover:outline-blue-400 cursor-move'
+                    isSelected ? 'element-selected shadow-md' : isPreviewMode ? '' : 'hover:outline hover:outline-1 hover:outline-blue-400'
                 }`;
 
                 if (el.type === 'image') {
@@ -503,27 +503,21 @@
                     selectElementOnly(el.id);
                 };
 
-                // Захват мыши с абсолютно любой точки блока
-                elDom.onmousedown = (e) => {
+                // Современный механизм Pointer Events для захвата в любой точке без сброса
+                elDom.onpointerdown = (e) => {
                     if (isPreviewMode) return;
                     e.stopPropagation();
                     selectElementOnly(el.id);
                     draggingElementId = el.id;
-                    const rect = elDom.getBoundingClientRect();
-                    dragOffsetX = e.clientX - rect.left;
-                    dragOffsetY = e.clientY - rect.top;
-                };
+                    activeElDom = elDom;
 
-                // Захват пальца с абсолютно любой точки блока
-                elDom.ontouchstart = (e) => {
-                    if (isPreviewMode) return;
-                    e.stopPropagation();
-                    selectElementOnly(el.id);
-                    draggingElementId = el.id;
-                    const rect = elDom.getBoundingClientRect();
-                    const touch = e.touches[0];
-                    dragOffsetX = touch.clientX - rect.left;
-                    dragOffsetY = touch.clientY - rect.top;
+                    const elRect = elDom.getBoundingClientRect();
+                    dragOffsetX = e.clientX - elRect.left;
+                    dragOffsetY = e.clientY - elRect.top;
+
+                    try {
+                        elDom.setPointerCapture(e.pointerId);
+                    } catch (err) {}
                 };
 
                 canvasElementsEl.appendChild(elDom);
@@ -543,27 +537,17 @@
             }
         }
 
-        function handleDragging(e) {
-            if (!draggingElementId || isPreviewMode) return;
-            updateElementCoords(e.clientX, e.clientY);
-        }
+        function handlePointerDragging(e) {
+            if (!draggingElementId || isPreviewMode || !activeElDom) return;
 
-        function handleTouchDragging(e) {
-            if (!draggingElementId || isPreviewMode) return;
-            const touch = e.touches[0];
-            updateElementCoords(touch.clientX, touch.clientY);
-            e.preventDefault();
-        }
-
-        function updateElementCoords(clientX, clientY) {
             const project = projects.find(p => p.id === activeProjectId);
             if (!project) return;
             const el = project.elements.find(item => item.id === draggingElementId);
             if (!el) return;
 
             const canvasRect = canvasEl.getBoundingClientRect();
-            let newX = clientX - canvasRect.left - dragOffsetX;
-            let newY = clientY - canvasRect.top - dragOffsetY;
+            let newX = e.clientX - canvasRect.left - dragOffsetX;
+            let newY = e.clientY - canvasRect.top - dragOffsetY;
 
             newX = Math.max(0, Math.min(canvasEl.offsetWidth - el.width, newX));
             newY = Math.max(0, Math.min(canvasEl.offsetHeight - el.height, newY));
@@ -571,14 +555,19 @@
             el.x = Math.round(newX);
             el.y = Math.round(newY);
 
-            renderCanvas();
+            // Прямое обновление стилей без перерисовки DOM во время движения
+            activeElDom.style.left = el.x + 'px';
+            activeElDom.style.top = el.y + 'px';
+
             fillPropertiesForm();
         }
 
-        function stopDragging() {
+        function stopPointerDragging(e) {
             if (draggingElementId) {
                 draggingElementId = null;
+                activeElDom = null;
                 saveToLocalStorage();
+                renderCanvas(); // Перерисовка при отпускании для синхронизации
             }
         }
 
