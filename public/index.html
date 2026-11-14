@@ -11,7 +11,7 @@
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Courier+Prime&family=Inter:wght@300;400;500;600;700&family=Montserrat:wght@400;600;700&family=Open+Sans:wght@400;600&family=Playfair+Display:ital,wght@0,600;1,400&family=Poppins:wght@400;600;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', sans-serif; }
+        body { font-family: 'Inter', sans-serif; overflow: hidden; }
         ::-webkit-scrollbar { width: 4px; height: 4px; }
         ::-webkit-scrollbar-track { background: #f1f5f9; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
@@ -26,7 +26,8 @@
         }
         .draggable-element {
             user-select: none;
-            touch-action: none;
+            -webkit-user-select: none;
+            touch-action: none !important;
         }
     </style>
 </head>
@@ -499,7 +500,7 @@
                     selectElementOnly(el.id);
                 };
 
-                // Захват мыши для перемещения с любой точки блока
+                // Захват мыши с любой точки блока
                 elDom.onmousedown = (e) => {
                     if (isPreviewMode) return;
                     e.stopPropagation();
@@ -510,7 +511,7 @@
                     dragOffsetY = e.clientY - rect.top;
                 };
 
-                // Захват касания (пальца) с любой точки блока
+                // Захват касания (пальца) с любой точки блока без сбоев
                 elDom.ontouchstart = (e) => {
                     if (isPreviewMode) return;
                     e.stopPropagation();
