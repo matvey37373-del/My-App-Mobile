@@ -290,9 +290,7 @@
         let draggingElementId = null;
         let dragOffsetX = 0;
         let dragOffsetY = 0;
-        let hasMoved = false; // Отслеживает, было ли перемещение блока
 
-        // Переменные для свайпа влево для открытия свойств
         let touchStartX = 0;
         let touchStartY = 0;
 
@@ -317,7 +315,7 @@
             window.addEventListener('touchmove', handleTouchDragging, { passive: false });
             window.addEventListener('touchend', stopDragging);
 
-            // Обработка свайпа влево по экрану для открытия панели свойств
+            // Свайп влево для открытия свойств
             mainSwipeArea.addEventListener('touchstart', (e) => {
                 touchStartX = e.touches[0].clientX;
                 touchStartY = e.touches[0].clientY;
@@ -331,7 +329,6 @@
                 let diffX = touchStartX - touchEndX;
                 let diffY = Math.abs(touchStartY - touchEndY);
 
-                // Если свайп влево достаточно длинный и почти горизонтальный
                 if (diffX > 70 && diffY < 50) {
                     if (selectedElementId) {
                         showPropertiesPanel();
@@ -495,34 +492,34 @@
                     elDom.innerText = el.text || '';
                 }
 
-                // Клик / тап по элементу (просто выделяет его без открытия панели свойств)
+                // Выделение элемента по тапу
                 elDom.onclick = (e) => {
                     if (isPreviewMode) return;
                     e.stopPropagation();
                     selectElementOnly(el.id);
                 };
 
+                // Захват мыши для перемещения с любой точки блока
                 elDom.onmousedown = (e) => {
                     if (isPreviewMode) return;
                     e.stopPropagation();
                     selectElementOnly(el.id);
                     draggingElementId = el.id;
-                    hasMoved = false;
-                    const rect = canvasEl.getBoundingClientRect();
-                    dragOffsetX = e.clientX - rect.left - el.x;
-                    dragOffsetY = e.clientY - rect.top - el.y;
+                    const rect = elDom.getBoundingClientRect();
+                    dragOffsetX = e.clientX - rect.left;
+                    dragOffsetY = e.clientY - rect.top;
                 };
 
+                // Захват касания (пальца) с любой точки блока
                 elDom.ontouchstart = (e) => {
                     if (isPreviewMode) return;
                     e.stopPropagation();
                     selectElementOnly(el.id);
                     draggingElementId = el.id;
-                    hasMoved = false;
-                    const rect = canvasEl.getBoundingClientRect();
+                    const rect = elDom.getBoundingClientRect();
                     const touch = e.touches[0];
-                    dragOffsetX = touch.clientX - rect.left - el.x;
-                    dragOffsetY = touch.clientY - rect.top - el.y;
+                    dragOffsetX = touch.clientX - rect.left;
+                    dragOffsetY = touch.clientY - rect.top;
                 };
 
                 canvasElementsEl.appendChild(elDom);
@@ -560,11 +557,9 @@
             const el = project.elements.find(item => item.id === draggingElementId);
             if (!el) return;
 
-            hasMoved = true; // Фиксируем, что палец двигается
-
-            const rect = canvasEl.getBoundingClientRect();
-            let newX = clientX - rect.left - dragOffsetX;
-            let newY = clientY - rect.top - dragOffsetY;
+            const canvasRect = canvasEl.getBoundingClientRect();
+            let newX = clientX - canvasRect.left - dragOffsetX;
+            let newY = clientY - canvasRect.top - dragOffsetY;
 
             newX = Math.max(0, Math.min(canvasEl.offsetWidth - el.width, newX));
             newY = Math.max(0, Math.min(canvasEl.offsetHeight - el.height, newY));
