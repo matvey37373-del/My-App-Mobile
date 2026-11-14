@@ -29,6 +29,9 @@
             -webkit-user-select: none;
             touch-action: none !important;
         }
+        .draggable-element * {
+            pointer-events: none; /* Все внутренние теги не перехватывают касания */
+        }
     </style>
 </head>
 <body class="bg-slate-100 text-slate-800 h-screen flex flex-col overflow-hidden">
@@ -478,11 +481,11 @@
                 }`;
 
                 if (el.type === 'image') {
-                    elDom.innerHTML = `<img src="${el.src}" class="w-full h-full object-cover rounded-[inherit] pointer-events-none" onerror="this.src='https://placehold.co/400x300?text=Ошибка+изображения'">`;
+                    elDom.innerHTML = `<img src="${el.src}" class="w-full h-full object-cover rounded-[inherit]" onerror="this.src='https://placehold.co/400x300?text=Ошибка+изображения'">`;
                 } else if (el.type === 'video') {
-                    elDom.innerHTML = `<div class="w-full h-full bg-slate-800 text-white flex flex-col items-center justify-center rounded-[inherit] pointer-events-none"><i class="fa-solid fa-circle-play text-2xl mb-1 text-red-500"></i><span class="text-[9px] opacity-75">Видео</span></div>`;
+                    elDom.innerHTML = `<div class="w-full h-full bg-slate-800 text-white flex flex-col items-center justify-center rounded-[inherit]"><i class="fa-solid fa-circle-play text-2xl mb-1 text-red-500"></i><span class="text-[9px] opacity-75">Видео</span></div>`;
                 } else if (el.type === 'icon') {
-                    elDom.innerHTML = `<i class="fa-solid fa-star pointer-events-none"></i>`;
+                    elDom.innerHTML = `<i class="fa-solid fa-star"></i>`;
                 } else if (el.type === 'line-solid') {
                     elDom.style.borderTop = `2px solid ${el.color}`;
                     elDom.style.backgroundColor = 'transparent';
@@ -493,14 +496,14 @@
                     elDom.innerText = el.text || '';
                 }
 
-                // Выделение элемента по тапу
+                // Выделение элемента по клику/тапу
                 elDom.onclick = (e) => {
                     if (isPreviewMode) return;
                     e.stopPropagation();
                     selectElementOnly(el.id);
                 };
 
-                // Захват мыши с любой точки блока
+                // Захват мыши с абсолютно любой точки блока
                 elDom.onmousedown = (e) => {
                     if (isPreviewMode) return;
                     e.stopPropagation();
@@ -511,7 +514,7 @@
                     dragOffsetY = e.clientY - rect.top;
                 };
 
-                // Захват касания (пальца) с любой точки блока без сбоев
+                // Захват пальца с абсолютно любой точки блока
                 elDom.ontouchstart = (e) => {
                     if (isPreviewMode) return;
                     e.stopPropagation();
