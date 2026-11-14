@@ -58,7 +58,7 @@
     </header>
 
     <!-- Главная рабочая область -->
-    <div class="flex-1 flex relative overflow-hidden">
+    <div id="main-swipe-area" class="flex-1 flex relative overflow-hidden">
         
         <!-- 2. Выдвижная панель проектов (Sidebar Drawer) -->
         <div id="projects-drawer" class="absolute inset-y-0 left-0 z-40 w-72 bg-white border-r border-slate-200 flex flex-col shadow-2xl transition-transform duration-300 -translate-x-full">
@@ -290,6 +290,11 @@
         let draggingElementId = null;
         let dragOffsetX = 0;
         let dragOffsetY = 0;
+        let hasMoved = false; // Отслеживает, было ли перемещение блока
+
+        // Переменные для свайпа влево для открытия свойств
+        let touchStartX = 0;
+        let touchStartY = 0;
 
         const projectsListEl = document.getElementById('projects-list');
         const activeProjectNameEl = document.getElementById('active-project-name');
@@ -301,6 +306,7 @@
         const backdrop = document.getElementById('backdrop');
         const canvasStatus = document.getElementById('canvas-status');
         const elementCount = document.getElementById('element-count');
+        const mainSwipeArea = document.getElementById('main-swipe-area');
 
         window.onload = function() {
             renderProjectsList();
@@ -310,6 +316,28 @@
             window.addEventListener('mouseup', stopDragging);
             window.addEventListener('touchmove', handleTouchDragging, { passive: false });
             window.addEventListener('touchend', stopDragging);
+
+            // Обработка свайпа влево по экрану для открытия панели свойств
+            mainSwipeArea.addEventListener('touchstart', (e) => {
+                touchStartX = e.touches[0].clientX;
+                touchStartY = e.touches[0].clientY;
+            }, { passive: true });
+
+            mainSwipeArea.addEventListener('touchend', (e) => {
+                if (isPreviewMode) return;
+                let touchEndX = e.changedTouches[0].clientX;
+                let touchEndY = e.changedTouches[0].clientY;
+                
+                let diffX = touchStartX - touchEndX;
+                let diffY = Math.abs(touchStartY - touchEndY);
+
+                // Если свайп влево достаточно длинный и почти горизонтальный
+                if (diffX > 70 && diffY < 50) {
+                    if (selectedElementId) {
+                        showPropertiesPanel();
+                    }
+                }
+            }, { passive: true });
         };
 
         function saveToLocalStorage() {
@@ -467,11 +495,19 @@
                     elDom.innerText = el.text || '';
                 }
 
+                // Клик / тап по элементу (просто выделяет его без открытия панели свойств)
+                elDom.onclick = (e) => {
+                    if (isPreviewMode) return;
+                    e.stopPropagation();
+                    selectElementOnly(el.id);
+                };
+
                 elDom.onmousedown = (e) => {
                     if (isPreviewMode) return;
                     e.stopPropagation();
-                    selectElement(el.id);
+                    selectElementOnly(el.id);
                     draggingElementId = el.id;
+                    hasMoved = false;
                     const rect = canvasEl.getBoundingClientRect();
                     dragOffsetX = e.clientX - rect.left - el.x;
                     dragOffsetY = e.clientY - rect.top - el.y;
@@ -480,8 +516,9 @@
                 elDom.ontouchstart = (e) => {
                     if (isPreviewMode) return;
                     e.stopPropagation();
-                    selectElement(el.id);
+                    selectElementOnly(el.id);
                     draggingElementId = el.id;
+                    hasMoved = false;
                     const rect = canvasEl.getBoundingClientRect();
                     const touch = e.touches[0];
                     dragOffsetX = touch.clientX - rect.left - el.x;
@@ -492,10 +529,9 @@
             });
         }
 
-        function selectElement(id) {
+        function selectElementOnly(id) {
             selectedElementId = id;
             renderCanvas();
-            showPropertiesPanel();
         }
 
         function deselectElement(e) {
@@ -523,6 +559,8 @@
             if (!project) return;
             const el = project.elements.find(item => item.id === draggingElementId);
             if (!el) return;
+
+            hasMoved = true; // Фиксируем, что палец двигается
 
             const rect = canvasEl.getBoundingClientRect();
             let newX = clientX - rect.left - dragOffsetX;
@@ -613,7 +651,8 @@
 
             project.elements.push(newElement);
             saveToLocalStorage();
-            selectElement(newElement.id);
+            selectElementOnly(newElement.id);
+            showPropertiesPanel();
         }
 
         function fillPropertiesForm() {
