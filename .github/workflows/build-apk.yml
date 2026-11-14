@@ -1,4 +1,4 @@
-name: Build Android APK
+@matvey37373-del ➜ /workspaces/My-App-Mobile (main) $ name: Build Android APK
 
 on:
   push:
@@ -8,34 +8,54 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+          path: android/app/build/outputs/apk/debug/app-debug.apk public --yes || true
+bash: name:: command not found
+bash: on:: command not found
+bash: push:: command not found
+bash: branches:: command not found
+bash: jobs:: command not found
+bash: build:: command not found
+bash: runs-on:: command not found
+bash: steps:: command not found
+bash: -: command not found
+bash: uses:: command not found
+bash: -: command not found
+bash: uses:: command not found
+bash: with:: command not found
+bash: distribution:: command not found
+bash: java-version:: command not found
+bash: -: command not found
+bash: uses:: command not found
+bash: with:: command not found
+bash: node-version:: command not found
+bash: -: command not found
+bash: run:: command not found
 
-      - name: Set up JDK 17
-        uses: actions/setup-java@v5
-        with:
-          distribution: 'temurin'
-          java-version: '17'
+up to date, audited 99 packages in 673ms
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
+11 packages are looking for funding
+  run `npm fund` for details
 
-      - name: Install dependencies and sync Capacitor
-        run: |
-          npm install
-          npx cap sync android
-
-      - name: Build Debug APK
-        run: |
-          cd android
-          chmod +x gradlew
-          ./gradlew assembleDebug --stacktrace
-
-      - name: Upload APK artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: app-debug
-          path: android/app/build/outputs/apk/debug/app-debug.apk
+found 0 vulnerabilities
+bash: -: command not found
+bash: run:: command not found
+error: unknown option '--yes'
+[error] android platform already exists.
+        To re-add this platform, first remove ./android, then run this command again.
+        WARNING: Your native project will be completely removed.
+✔ Copying web assets from public to android/app/src/main/assets/public in 7.85ms
+✔ Creating capacitor.config.json in android/app/src/main/assets in 887.75μs
+✔ copy android in 14.16ms
+✔ Updating Android plugins in 726.54μs
+✔ update android in 22.99ms
+[info] Sync finished in 0.056s
+bash: -: command not found
+bash: run:: command not found
+chmod: cannot access 'gradlew': No such file or directory
+bash: ./gradlew: No such file or directory
+bash: -: command not found
+bash: uses:: command not found
+bash: with:: command not found
+bash: name:: command not found
+bash: path:: command not found
+@matvey37373-del ➜ /workspaces/My-App-Mobile (main) $ 
