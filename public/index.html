@@ -7,7 +7,58 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="manifest" href="manifest.json">
 </head>
-<body class="bg-gray-100 h-screen flex flex-col overflow-hidden">
+<<div class="app-container">
+  <!-- Верхняя панель -->
+  <header class="app-header">
+    <div class="app-title">
+      <button class="menu-toggle" id="menuToggle">📂</button>
+      <span>STUDIO DESIGN</span>
+    </div>
+    <div class="header-actions">
+      <button class="btn-action" id="clearBtn">Очистить</button>
+      <button class="btn-action preview" id="previewBtn">Превью</button>
+      <button class="btn-action save" id="saveBtn">Сохранить</button>
+    </div>
+  </header>
+
+  <div class="main-layout">
+    <!-- Боковая панель проектов -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <h3>ПРОЕКТЫ</h3>
+        <button class="btn-new" id="newProjectBtn">+ Новый</button>
+      </div>
+      <div class="project-list">
+        <div class="project-item active">Демо Дизайн</div>
+      </div>
+    </aside>
+
+    <!-- Основная рабочая область (Холст) -->
+    <main class="workspace">
+      <div class="canvas-wrapper">
+        <div class="canvas-header-info">
+          <span>Редактирование: Демо Дизайн</span>
+          <span>Элементов: 3</span>
+        </div>
+        <div class="canvas">
+          <h2 class="canvas-title">Заголовок Проекта</h2>
+          <div class="canvas-image-placeholder">
+            <img src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=400&auto=format&fit=crop" alt="Demo">
+          </div>
+          <button class="canvas-btn">Узнать больше</button>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Нижняя панель инструментов -->
+  <nav class="toolbar">
+    <button class="toolbar-item active">🔤 <span>Текст</span></button>
+    <button class="toolbar-item">⬛ <span>Фигуры</span></button>
+    <button class="toolbar-item">🖼️ <span>Медиа</span></button>
+    <button class="toolbar-item">➖ <span>Разделители</span></button>
+  </nav>
+</div>>
 
     <header class="bg-white border-b px-4 py-3 flex justify-between items-center shadow-sm">
         <h1 class="text-lg font-bold text-gray-800">🎨 Редактор</h1>

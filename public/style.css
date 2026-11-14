@@ -1,0 +1,220 @@
+/* Базовые стили */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background-color: #f1f5f9;
+  color: #1e293b;
+  overflow-x: hidden;
+}
+
+.app-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+/* Шапка */
+.app-header {
+  background-color: #0f172a;
+  color: white;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 15px;
+  height: 55px;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 100;
+}
+
+.app-title {
+  font-size: 15px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.menu-toggle {
+  background: none;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+}
+
+.header-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.btn-action {
+  background-color: #334155;
+  color: white;
+  border: none;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.btn-action.preview {
+  background-color: #4f46e5;
+}
+
+.btn-action.save {
+  background-color: #2563eb;
+}
+
+/* Макет с сайдбаром */
+.main-layout {
+  display: flex;
+  margin-top: 55px;
+  margin-bottom: 60px;
+  height: calc(100vh - 115px);
+  position: relative;
+}
+
+/* Боковая панель */
+.sidebar {
+  width: 250px;
+  background: white;
+  border-right: 1px solid #e2e8f0;
+  padding: 15px;
+  position: absolute;
+  height: 100%;
+  left: -250px;
+  transition: left 0.3s ease;
+  z-index: 90;
+}
+
+.sidebar.open {
+  left: 0;
+}
+
+.sidebar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+  font-size: 13px;
+}
+
+.btn-new {
+  background-color: #2563eb;
+  color: white;
+  border: none;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+}
+
+.project-item {
+  padding: 8px 10px;
+  background: #eff6ff;
+  color: #1d4ed8;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+/* Рабочая зона (Холст) */
+.workspace {
+  flex: 1;
+  padding: 15px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: #f8fafc;
+  background-image: radial-gradient(#cbd5e1 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+.canvas-wrapper {
+  width: 100%;
+  max-width: 450px;
+}
+
+.canvas-header-info {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: #64748b;
+  margin-bottom: 8px;
+}
+
+.canvas {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+  text-align: center;
+}
+
+.canvas-title {
+  font-size: 20px;
+  font-weight: bold;
+  color: #0f172a;
+}
+
+.canvas-image-placeholder img {
+  width: 100%;
+  border-radius: 8px;
+  object-fit: cover;
+}
+
+.canvas-btn {
+  background-color: #2563eb;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+/* Нижняя панель */
+.toolbar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background: white;
+  border-top: 1px solid #e2e8f0;
+  display: flex;
+  justify-content: space-around;
+  padding: 8px 0;
+  height: 60px;
+  z-index: 100;
+}
+
+.toolbar-item {
+  background: none;
+  border: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-size: 16px;
+  color: #64748b;
+  gap: 2px;
+  cursor: pointer;
+}
+
+.toolbar-item span {
+  font-size: 10px;
+}
+
+.toolbar-item.active {
+  color: #2563eb;
+}
