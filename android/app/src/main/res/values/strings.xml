@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Design Editor</string>
+    <string name="title_activity_main">Design Editor</string>
+    <string name="package_name">com.designer.app</string>
+    <string name="custom_url_scheme">com.designer.app</string>
+</resources>
