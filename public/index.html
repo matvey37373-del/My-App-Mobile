@@ -3,223 +3,732 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Мобильный Дизайн-Редактор</title>
+    <title>STUDIO DESIGN - Мобильный редактор</title>
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="manifest" href="manifest.json">
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Courier+Prime&family=Inter:wght@300;400;500;600;700&family=Montserrat:wght@400;600;700&family=Open+Sans:wght@400;600&family=Playfair+Display:ital,wght@0,600;1,400&family=Poppins:wght@400;600;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        
+        .canvas-grid {
+            background-image: radial-gradient(#cbd5e1 1.5px, transparent 1.5px);
+            background-size: 20px 20px;
+        }
+        .element-selected {
+            outline: 2px solid #3b82f6 !important;
+            outline-offset: 2px;
+        }
+        .draggable-element {
+            user-select: none;
+            touch-action: none;
+        }
+    </style>
 </head>
-<<div class="app-container">
-  <!-- Верхняя панель -->
-  <header class="app-header">
-    <div class="app-title">
-      <button class="menu-toggle" id="menuToggle">📂</button>
-      <span>STUDIO DESIGN</span>
-    </div>
-    <div class="header-actions">
-      <button class="btn-action" id="clearBtn">Очистить</button>
-      <button class="btn-action preview" id="previewBtn">Превью</button>
-      <button class="btn-action save" id="saveBtn">Сохранить</button>
-    </div>
-  </header>
+<body class="bg-slate-100 text-slate-800 h-screen flex flex-col overflow-hidden">
 
-  <div class="main-layout">
-    <!-- Боковая панель проектов -->
-    <aside class="sidebar" id="sidebar">
-      <div class="sidebar-header">
-        <h3>ПРОЕКТЫ</h3>
-        <button class="btn-new" id="newProjectBtn">+ Новый</button>
-      </div>
-      <div class="project-list">
-        <div class="project-item active">Демо Дизайн</div>
-      </div>
-    </aside>
-
-    <!-- Основная рабочая область (Холст) -->
-    <main class="workspace">
-      <div class="canvas-wrapper">
-        <div class="canvas-header-info">
-          <span>Редактирование: Демо Дизайн</span>
-          <span>Элементов: 3</span>
+    <!-- 1. Верхняя панель (Header) -->
+    <header class="h-14 bg-slate-900 text-white px-3 flex items-center justify-between z-30 shadow-md shrink-0">
+        <div class="flex items-center space-x-2">
+            <button onclick="toggleProjectsDrawer()" class="bg-slate-800 hover:bg-slate-700 p-2 rounded-lg text-white transition flex items-center justify-center w-9 h-9">
+                <i class="fa-solid fa-folder-open text-blue-400"></i>
+            </button>
+            <div class="truncate max-w-[130px]">
+                <h1 class="font-bold text-xs tracking-wide">STUDIO DESIGN</h1>
+                <p id="active-project-name" class="text-[10px] text-slate-400 font-medium truncate">Проект не выбран</p>
+            </div>
         </div>
-        <div class="canvas">
-          <h2 class="canvas-title">Заголовок Проекта</h2>
-          <div class="canvas-image-placeholder">
-            <img src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=400&auto=format&fit=crop" alt="Demo">
-          </div>
-          <button class="canvas-btn">Узнать больше</button>
-        </div>
-      </div>
-    </main>
-  </div>
 
-  <!-- Нижняя панель инструментов -->
-  <nav class="toolbar">
-    <button class="toolbar-item active">🔤 <span>Текст</span></button>
-    <button class="toolbar-item">⬛ <span>Фигуры</span></button>
-    <button class="toolbar-item">🖼️ <span>Медиа</span></button>
-    <button class="toolbar-item">➖ <span>Разделители</span></button>
-  </nav>
-</div>>
-
-    <header class="bg-white border-b px-4 py-3 flex justify-between items-center shadow-sm">
-        <h1 class="text-lg font-bold text-gray-800">🎨 Редактор</h1>
-        <div class="space-x-1">
-            <button onclick="saveProject()" class="bg-blue-600 text-white text-sm px-3 py-1.5 rounded-lg">Сохранить</button>
-            <button onclick="showPreview()" class="bg-green-600 text-white text-sm px-3 py-1.5 rounded-lg">Превью</button>
+        <div class="flex items-center space-x-1.5">
+            <button onclick="clearCanvas()" class="text-slate-300 hover:text-red-400 p-2 rounded-lg text-xs transition" title="Очистить холст">
+                <i class="fa-solid fa-broom"></i>
+            </button>
+            <button id="preview-btn" onclick="togglePreview()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-medium px-2.5 py-1.5 rounded-lg text-xs transition flex items-center shadow-sm">
+                <i class="fa-solid fa-eye mr-1"></i> <span id="preview-btn-text">Превью</span>
+            </button>
+            <button onclick="saveCurrentProjectState()" class="bg-blue-600 hover:bg-blue-700 text-white font-medium px-2.5 py-1.5 rounded-lg text-xs transition flex items-center shadow-sm">
+                <i class="fa-solid fa-floppy-disk mr-1"></i> Сохранить
+            </button>
         </div>
     </header>
 
-    <div class="flex flex-1 overflow-hidden">
-        <aside class="w-64 bg-white border-r flex flex-col">
-            <div class="p-3 border-b font-semibold text-gray-700 text-sm">Проекты</div>
-            <div id="projectList" class="flex-1 overflow-y-auto p-2 space-y-1"></div>
-            <div class="p-3 border-t">
-                <button onclick="createProject()" class="w-full bg-indigo-600 text-white py-2 text-sm rounded-lg">+ Новый</button>
+    <!-- Главная рабочая область -->
+    <div class="flex-1 flex relative overflow-hidden">
+        
+        <!-- 2. Выдвижная панель проектов (Sidebar Drawer) -->
+        <div id="projects-drawer" class="absolute inset-y-0 left-0 z-40 w-72 bg-white border-r border-slate-200 flex flex-col shadow-2xl transition-transform duration-300 -translate-x-full">
+            <div class="p-3 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+                <h2 class="font-semibold text-slate-700 text-xs uppercase tracking-wider flex items-center">
+                    <i class="fa-solid fa-folder text-blue-500 mr-2"></i> Проекты
+                </h2>
+                <div class="flex items-center space-x-2">
+                    <button onclick="createNewProject()" class="bg-blue-600 hover:bg-blue-700 text-white p-1.5 rounded-md transition text-xs px-2 flex items-center">
+                        <i class="fa-solid fa-plus mr-1"></i> Новый
+                    </button>
+                    <button onclick="toggleProjectsDrawer()" class="text-slate-400 hover:text-slate-600 p-1.5">
+                        <i class="fa-solid fa-xmark text-sm"></i>
+                    </button>
+                </div>
+            </div>
+            <div id="projects-list" class="flex-1 overflow-y-auto p-2 space-y-1"></div>
+            <div class="p-2.5 bg-slate-50 border-t border-slate-200 text-[11px] text-slate-400 text-center">
+                💡 Кликните для открытия проекта
+            </div>
+        </div>
+
+        <!-- Затемнение фона при открытых панелях -->
+        <div id="backdrop" onclick="closeAllDrawers()" class="absolute inset-y-0 left-0 right-0 bg-black/40 z-30 hidden backdrop-blur-sm transition-opacity"></div>
+
+        <!-- 3. Центральный Холст -->
+        <main class="flex-1 flex flex-col relative bg-slate-200 overflow-hidden">
+            <div class="h-7 bg-white/90 border-b border-slate-200 px-3 flex items-center justify-between text-[10px] text-slate-500 font-medium shrink-0">
+                <span id="canvas-status" class="truncate pr-2">Выберите проект</span>
+                <span id="element-count" class="shrink-0">Элементов: 0</span>
+            </div>
+
+            <div id="canvas-container" class="flex-1 overflow-auto p-4 flex justify-center items-center canvas-grid" onclick="deselectElement(event)">
+                <!-- Адаптивный холст под мобильные размеры -->
+                <div id="canvas" class="w-full max-w-[380px] h-[550px] bg-white rounded-lg shadow-xl border border-slate-300 relative overflow-hidden transition-all shrink-0">
+                    <!-- Заглушка -->
+                    <div id="empty-state" class="absolute inset-0 flex flex-col items-center justify-center text-slate-400 p-6 text-center select-none pointer-events-none">
+                        <i class="fa-solid fa-object-group text-4xl mb-2 text-slate-300"></i>
+                        <p class="font-medium text-slate-600 text-xs">Проект пуст или не выбран</p>
+                        <p class="text-[11px] mt-1 text-slate-400">Нажмите на иконку папки сверху, чтобы выбрать проект</p>
+                    </div>
+
+                    <!-- Рабочий слой элементов -->
+                    <div id="canvas-elements" class="w-full h-full relative"></div>
+                </div>
+            </div>
+
+            <!-- 4. Нижняя панель категорий и добавления блоков -->
+            <footer class="bg-white border-t border-slate-200 z-20 shrink-0 flex flex-col">
+                <div class="flex border-b border-slate-200 px-2 bg-slate-50 text-[11px] font-semibold text-slate-600 overflow-x-auto">
+                    <button onclick="switchCategory('text')" id="tab-text" class="px-3 py-2 border-b-2 border-blue-600 text-blue-600 flex items-center shrink-0">
+                        <i class="fa-solid fa-font mr-1.5"></i> Текст
+                    </button>
+                    <button onclick="switchCategory('shapes')" id="tab-shapes" class="px-3 py-2 border-b-2 border-transparent hover:text-slate-900 flex items-center shrink-0">
+                        <i class="fa-solid fa-shapes mr-1.5"></i> Фигуры
+                    </button>
+                    <button onclick="switchCategory('media')" id="tab-media" class="px-3 py-2 border-b-2 border-transparent hover:text-slate-900 flex items-center shrink-0">
+                        <i class="fa-solid fa-photo-film mr-1.5"></i> Медиа
+                    </button>
+                    <button onclick="switchCategory('dividers')" id="tab-dividers" class="px-3 py-2 border-b-2 border-transparent hover:text-slate-900 flex items-center shrink-0">
+                        <i class="fa-solid fa-grip-lines mr-1.5"></i> Линии
+                    </button>
+                </div>
+
+                <!-- Контент блоков -->
+                <div class="h-14 px-3 flex items-center overflow-x-auto space-x-2 py-1.5">
+                    <div id="cat-text" class="flex items-center space-x-2">
+                        <button onclick="addElement('h1')" class="bg-slate-100 hover:bg-blue-50 text-slate-700 px-2.5 py-1.5 rounded-lg text-xs font-bold border transition flex items-center shrink-0">
+                            <i class="fa-solid fa-heading mr-1 text-blue-600"></i> Заголовок H1
+                        </button>
+                        <button onclick="addElement('h2')" class="bg-slate-100 hover:bg-blue-50 text-slate-700 px-2.5 py-1.5 rounded-lg text-xs font-semibold border transition flex items-center shrink-0">
+                            <i class="fa-solid fa-heading text-[10px] mr-1 text-blue-500"></i> Подзаголовок H2
+                        </button>
+                        <button onclick="addElement('paragraph')" class="bg-slate-100 hover:bg-blue-50 text-slate-700 px-2.5 py-1.5 rounded-lg text-xs border transition flex items-center shrink-0">
+                            <i class="fa-solid fa-paragraph mr-1 text-slate-500"></i> Текст
+                        </button>
+                    </div>
+
+                    <div id="cat-shapes" class="hidden flex items-center space-x-2">
+                        <button onclick="addElement('rect')" class="bg-slate-100 hover:bg-blue-50 text-slate-700 px-2.5 py-1.5 rounded-lg text-xs border transition flex items-center shrink-0">
+                            <i class="fa-regular fa-square mr-1 text-emerald-600"></i> Прямоугольник
+                        </button>
+                        <button onclick="addElement('circle')" class="bg-slate-100 hover:bg-blue-50 text-slate-700 px-2.5 py-1.5 rounded-lg text-xs border transition flex items-center shrink-0">
+                            <i class="fa-regular fa-circle mr-1 text-purple-600"></i> Круг
+                        </button>
+                        <button onclick="addElement('button')" class="bg-slate-100 hover:bg-blue-50 text-slate-700 px-2.5 py-1.5 rounded-lg text-xs border transition flex items-center shrink-0">
+                            <i class="fa-solid fa-toggle-on mr-1 text-indigo-600"></i> Кнопка
+                        </button>
+                    </div>
+
+                    <div id="cat-media" class="hidden flex items-center space-x-2">
+                        <button onclick="addElement('image')" class="bg-slate-100 hover:bg-blue-50 text-slate-700 px-2.5 py-1.5 rounded-lg text-xs border transition flex items-center shrink-0">
+                            <i class="fa-regular fa-image mr-1 text-amber-500"></i> Картинка
+                        </button>
+                        <button onclick="addElement('video')" class="bg-slate-100 hover:bg-blue-50 text-slate-700 px-2.5 py-1.5 rounded-lg text-xs border transition flex items-center shrink-0">
+                            <i class="fa-solid fa-video mr-1 text-red-500"></i> Видео
+                        </button>
+                        <button onclick="addElement('icon')" class="bg-slate-100 hover:bg-blue-50 text-slate-700 px-2.5 py-1.5 rounded-lg text-xs border transition flex items-center shrink-0">
+                            <i class="fa-solid fa-icons mr-1 text-teal-500"></i> Иконка
+                        </button>
+                    </div>
+
+                    <div id="cat-dividers" class="hidden flex items-center space-x-2">
+                        <button onclick="addElement('line-solid')" class="bg-slate-100 hover:bg-blue-50 text-slate-700 px-2.5 py-1.5 rounded-lg text-xs border transition flex items-center shrink-0">
+                            <i class="fa-solid fa-minus mr-1 text-slate-600"></i> Линия
+                        </button>
+                        <button onclick="addElement('line-dashed')" class="bg-slate-100 hover:bg-blue-50 text-slate-700 px-2.5 py-1.5 rounded-lg text-xs border transition flex items-center shrink-0">
+                            <i class="fa-solid fa-ellipsis mr-1 text-slate-600"></i> Пунктир
+                        </button>
+                    </div>
+                </div>
+            </footer>
+        </main>
+
+        <!-- 5. Выдвижная панель Свойств элемента (Properties Drawer) -->
+        <aside id="properties-panel" class="absolute inset-y-0 right-0 z-40 w-72 bg-white border-l border-slate-200 flex flex-col shadow-2xl transition-transform duration-300 translate-x-full">
+            <div class="p-3 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+                <h2 class="font-semibold text-slate-700 text-xs uppercase tracking-wider flex items-center">
+                    <i class="fa-solid fa-sliders text-indigo-500 mr-2"></i> Свойства
+                </h2>
+                <div class="flex items-center space-x-2">
+                    <button onclick="deleteSelectedElement()" class="text-red-500 hover:text-red-700 hover:bg-red-50 p-1.5 rounded-md transition" title="Удалить">
+                        <i class="fa-solid fa-trash-can text-xs"></i>
+                    </button>
+                    <button onclick="hidePropertiesPanel()" class="text-slate-400 hover:text-slate-600 p-1.5">
+                        <i class="fa-solid fa-xmark text-sm"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="p-3 overflow-y-auto flex-1 space-y-3 text-xs">
+                <div id="prop-media-group" class="space-y-1 hidden">
+                    <label class="font-semibold text-slate-700 block">Ссылка (URL) изображения</label>
+                    <input type="text" id="prop-src" oninput="updateSelectedElement()" placeholder="https://..." class="w-full p-2 border border-slate-200 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                </div>
+
+                <div id="prop-text-group" class="space-y-1">
+                    <label class="font-semibold text-slate-700 block">Текст</label>
+                    <textarea id="prop-text-content" rows="2" oninput="updateSelectedElement()" class="w-full p-2 border border-slate-200 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none"></textarea>
+                </div>
+
+                <div id="prop-font-group" class="space-y-2">
+                    <div>
+                        <label class="font-semibold text-slate-700 block mb-1">Шрифт</label>
+                        <select id="prop-font-family" onchange="updateSelectedElement()" class="w-full p-2 border border-slate-200 rounded-md bg-white focus:outline-none">
+                            <option value="'Inter', sans-serif">Inter</option>
+                            <option value="'Roboto', sans-serif">Roboto</option>
+                            <option value="'Montserrat', sans-serif">Montserrat</option>
+                            <option value="'Poppins', sans-serif">Poppins</option>
+                            <option value="'Playfair Display', serif">Playfair Display</option>
+                            <option value="'Courier Prime', monospace">Courier Prime</option>
+                        </select>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="text-slate-500 block mb-1">Размер (px)</label>
+                            <input type="number" id="prop-font-size" oninput="updateSelectedElement()" min="8" max="100" class="w-full p-1.5 border border-slate-200 rounded-md">
+                        </div>
+                        <div>
+                            <label class="text-slate-500 block mb-1">Цвет текста</label>
+                            <input type="color" id="prop-text-color" oninput="updateSelectedElement()" class="w-full h-8 rounded border border-slate-200 cursor-pointer">
+                        </div>
+                    </div>
+                </div>
+
+                <hr class="border-slate-100">
+
+                <div class="space-y-2">
+                    <label class="font-semibold text-slate-700 block">Позиция & Слои</label>
+                    <div class="grid grid-cols-3 gap-2">
+                        <div>
+                            <label class="text-slate-400 block mb-1">X (px)</label>
+                            <input type="number" id="prop-x" oninput="updateSelectedElement()" class="w-full p-1.5 border border-slate-200 rounded-md">
+                        </div>
+                        <div>
+                            <label class="text-slate-400 block mb-1">Y (px)</label>
+                            <input type="number" id="prop-y" oninput="updateSelectedElement()" class="w-full p-1.5 border border-slate-200 rounded-md">
+                        </div>
+                        <div>
+                            <label class="text-slate-400 block mb-1">Слой (Z)</label>
+                            <input type="number" id="prop-zindex" oninput="updateSelectedElement()" class="w-full p-1.5 border border-slate-200 rounded-md">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="space-y-2">
+                    <label class="font-semibold text-slate-700 block">Размеры & Геометрия</label>
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="text-slate-400 block mb-1">Ширина (px)</label>
+                            <input type="number" id="prop-width" oninput="updateSelectedElement()" class="w-full p-1.5 border border-slate-200 rounded-md">
+                        </div>
+                        <div>
+                            <label class="text-slate-400 block mb-1">Высота (px)</label>
+                            <input type="number" id="prop-height" oninput="updateSelectedElement()" class="w-full p-1.5 border border-slate-200 rounded-md">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="text-slate-400 block mb-1">Скругление (px)</label>
+                        <input type="number" id="prop-radius" oninput="updateSelectedElement()" min="0" max="100" class="w-full p-1.5 border border-slate-200 rounded-md">
+                    </div>
+                    <div>
+                        <label class="text-slate-400 block mb-1">Цвет фона</label>
+                        <input type="color" id="prop-bg-color" oninput="updateSelectedElement()" class="w-full h-8 rounded border border-slate-200 cursor-pointer">
+                    </div>
+                </div>
             </div>
         </aside>
-
-        <main class="flex-1 relative bg-gray-50 overflow-auto flex items-center justify-center p-4">
-            <div id="canvas" class="w-[800px] h-[600px] bg-white shadow-lg relative border rounded-lg overflow-hidden"></div>
-        </main>
     </div>
 
-    <footer class="bg-white border-t p-2 flex gap-2 items-center justify-around shadow-inner">
-        <button onclick="addElement('text')" class="px-3 py-1.5 bg-gray-200 text-sm rounded">📝 Текст</button>
-        <button onclick="addElement('circle')" class="px-3 py-1.5 bg-gray-200 text-sm rounded">⚪ Круг</button>
-        <button onclick="clearCanvas()" class="px-3 py-1.5 bg-red-100 text-red-600 text-sm rounded">🗑️ Очистить</button>
-    </footer>
-
+    <!-- JavaScript Logic -->
     <script>
-        let projects = JSON.parse(localStorage.getItem('cloud_projects')) || {};
-        let currentProjectName = null;
+        let projects = JSON.parse(localStorage.getItem('design_app_projects_mobile_v1')) || [
+            {
+                id: 'demo-1',
+                name: 'Демо Дизайн',
+                elements: [
+                    { id: 'el-1', type: 'h1', text: 'Заголовок Проекта', x: 20, y: 30, width: 330, height: 45, bgColor: 'transparent', color: '#1e293b', fontFamily: "'Poppins', sans-serif", fontSize: 24, zIndex: 1, radius: 0 },
+                    { id: 'el-2', type: 'image', src: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=500&q=80', x: 20, y: 90, width: 330, height: 200, bgColor: '#f1f5f9', color: '#000', fontFamily: 'sans-serif', fontSize: 14, zIndex: 2, radius: 12 },
+                    { id: 'el-3', type: 'button', text: 'Узнать больше', x: 20, y: 310, width: 150, height: 42, bgColor: '#2563eb', color: '#ffffff', fontFamily: "'Inter', sans-serif", fontSize: 14, zIndex: 3, radius: 8 }
+                ]
+            }
+        ];
 
-        function renderProjects() {
-            const list = document.getElementById('projectList');
-            list.innerHTML = '';
-            for (let name in projects) {
-                let div = document.createElement('div');
-                div.className = `p-2 rounded cursor-pointer flex justify-between items-center text-sm ${name === currentProjectName ? 'bg-indigo-50 text-indigo-700 font-bold' : 'hover:bg-gray-100'}`;
-                div.innerHTML = `<span>${name}</span> 
-                    <div>
-                        <button onclick="event.stopPropagation(); renameProject('${name}')" class="text-xs text-blue-500 mr-1">✏️</button>
-                        <button onclick="event.stopPropagation(); deleteProject('${name}')" class="text-xs text-red-500">❌</button>
-                    </div>`;
-                div.ondblclick = () => openProject(name);
-                list.appendChild(div);
+        let activeProjectId = null;
+        let selectedElementId = null;
+        let isPreviewMode = false;
+
+        let draggingElementId = null;
+        let dragOffsetX = 0;
+        let dragOffsetY = 0;
+
+        const projectsListEl = document.getElementById('projects-list');
+        const activeProjectNameEl = document.getElementById('active-project-name');
+        const canvasEl = document.getElementById('canvas');
+        const canvasElementsEl = document.getElementById('canvas-elements');
+        const emptyStateEl = document.getElementById('empty-state');
+        const propertiesPanel = document.getElementById('properties-panel');
+        const projectsDrawer = document.getElementById('projects-drawer');
+        const backdrop = document.getElementById('backdrop');
+        const canvasStatus = document.getElementById('canvas-status');
+        const elementCount = document.getElementById('element-count');
+
+        window.onload = function() {
+            renderProjectsList();
+            if (projects.length > 0) openProject(projects[0].id);
+
+            window.addEventListener('mousemove', handleDragging);
+            window.addEventListener('mouseup', stopDragging);
+            window.addEventListener('touchmove', handleTouchDragging, { passive: false });
+            window.addEventListener('touchend', stopDragging);
+        };
+
+        function saveToLocalStorage() {
+            localStorage.setItem('design_app_projects_mobile_v1', JSON.stringify(projects));
+        }
+
+        function toggleProjectsDrawer() {
+            const isOpen = projectsDrawer.classList.contains('translate-x-0');
+            if (isOpen) {
+                projectsDrawer.classList.remove('translate-x-0');
+                projectsDrawer.classList.add('-translate-x-full');
+                backdrop.classList.add('hidden');
+            } else {
+                hidePropertiesPanel();
+                projectsDrawer.classList.remove('-translate-x-full');
+                projectsDrawer.classList.add('translate-x-0');
+                backdrop.classList.remove('hidden');
             }
         }
 
-        function createProject() {
-            let name = prompt("Название проекта:");
-            if (name && !projects[name]) {
-                projects[name] = [];
-                currentProjectName = name;
-                saveProject();
-                renderProjects();
-                renderCanvas();
+        function showPropertiesPanel() {
+            hideProjectsDrawer();
+            propertiesPanel.classList.remove('translate-x-full');
+            propertiesPanel.classList.add('translate-x-0');
+            backdrop.classList.remove('hidden');
+            fillPropertiesForm();
+        }
+
+        function hidePropertiesPanel() {
+            propertiesPanel.classList.remove('translate-x-0');
+            propertiesPanel.classList.add('translate-x-full');
+            if (!projectsDrawer.classList.contains('translate-x-0')) {
+                backdrop.classList.add('hidden');
             }
         }
 
-        function openProject(name) {
-            currentProjectName = name;
-            renderProjects();
+        function hideProjectsDrawer() {
+            projectsDrawer.classList.remove('translate-x-0');
+            projectsDrawer.classList.add('-translate-x-full');
+        }
+
+        function closeAllDrawers() {
+            hideProjectsDrawer();
+            hidePropertiesPanel();
+            backdrop.classList.add('hidden');
+        }
+
+        function switchCategory(cat) {
+            ['text', 'shapes', 'media', 'dividers'].forEach(c => {
+                document.getElementById(`cat-${c}`).classList.add('hidden');
+                const tab = document.getElementById(`tab-${c}`);
+                tab.classList.remove('border-blue-600', 'text-blue-600');
+                tab.classList.add('border-transparent');
+            });
+            document.getElementById(`cat-${cat}`).classList.remove('hidden');
+            const activeTab = document.getElementById(`tab-${cat}`);
+            activeTab.classList.add('border-blue-600', 'text-blue-600');
+            activeTab.classList.remove('border-transparent');
+        }
+
+        function renderProjectsList() {
+            projectsListEl.innerHTML = '';
+            projects.forEach(project => {
+                const isActive = project.id === activeProjectId;
+                const item = document.createElement('div');
+                item.className = `p-2.5 rounded-md border transition cursor-pointer flex items-center justify-between ${
+                    isActive ? 'bg-blue-50 border-blue-200 text-blue-700 font-medium' : 'bg-white border-slate-200 text-slate-700'
+                }`;
+                item.onclick = () => {
+                    openProject(project.id);
+                    closeAllDrawers();
+                };
+                item.innerHTML = `
+                    <div class="flex items-center space-x-2 truncate pr-1">
+                        <i class="fa-solid fa-folder text-xs ${isActive ? 'text-blue-600' : 'text-slate-400'}"></i>
+                        <span class="text-xs truncate">${escapeHtml(project.name)}</span>
+                    </div>
+                `;
+                projectsListEl.appendChild(item);
+            });
+        }
+
+        function createNewProject() {
+            const name = prompt('Название нового проекта:', 'Мой Проект');
+            if (name && name.trim()) {
+                const newProj = { id: 'proj_' + Date.now(), name: name.trim(), elements: [] };
+                projects.push(newProj);
+                saveToLocalStorage();
+                renderProjectsList();
+                openProject(newProj.id);
+                closeAllDrawers();
+            }
+        }
+
+        function openProject(id) {
+            activeProjectId = id;
+            selectedElementId = null;
+            renderProjectsList();
             renderCanvas();
+            hidePropertiesPanel();
+            const project = projects.find(p => p.id === id);
+            if (project) activeProjectNameEl.textContent = project.name;
         }
 
-        function renameProject(oldName) {
-            let newName = prompt("Новое название:", oldName);
-            if (newName && !projects[newName]) {
-                projects[newName] = projects[oldName];
-                delete projects[oldName];
-                if (currentProjectName === oldName) currentProjectName = newName;
-                saveProject();
-                renderProjects();
+        function renderCanvas() {
+            const project = projects.find(p => p.id === activeProjectId);
+            canvasElementsEl.innerHTML = '';
+
+            if (!project) {
+                emptyStateEl.classList.remove('hidden');
+                activeProjectNameEl.textContent = 'Проект не выбран';
+                canvasStatus.textContent = 'Нет проекта';
+                elementCount.textContent = 'Элементов: 0';
+                return;
+            }
+
+            emptyStateEl.classList.add('hidden');
+            activeProjectNameEl.textContent = project.name;
+            canvasStatus.textContent = project.name;
+            elementCount.textContent = `Элементов: ${project.elements.length}`;
+
+            project.elements.forEach(el => {
+                const elDom = document.createElement('div');
+                const isSelected = el.id === selectedElementId && !isPreviewMode;
+
+                elDom.style.position = 'absolute';
+                elDom.style.left = el.x + 'px';
+                elDom.style.top = el.y + 'px';
+                elDom.style.width = el.width + 'px';
+                elDom.style.height = el.height + 'px';
+                elDom.style.backgroundColor = el.bgColor;
+                elDom.style.color = el.color;
+                elDom.style.fontFamily = el.fontFamily;
+                elDom.style.fontSize = el.fontSize + 'px';
+                elDom.style.zIndex = el.zIndex || 1;
+                elDom.style.borderRadius = (el.radius || 0) + 'px';
+
+                elDom.className = `draggable-element flex items-center justify-center ${
+                    isSelected ? 'element-selected shadow-md cursor-move' : isPreviewMode ? '' : 'hover:outline hover:outline-1 hover:outline-blue-400 cursor-move'
+                }`;
+
+                if (el.type === 'image') {
+                    elDom.innerHTML = `<img src="${el.src}" class="w-full h-full object-cover rounded-[inherit] pointer-events-none" onerror="this.src='https://placehold.co/400x300?text=Ошибка+изображения'">`;
+                } else if (el.type === 'video') {
+                    elDom.innerHTML = `<div class="w-full h-full bg-slate-800 text-white flex flex-col items-center justify-center rounded-[inherit] pointer-events-none"><i class="fa-solid fa-circle-play text-2xl mb-1 text-red-500"></i><span class="text-[9px] opacity-75">Видео</span></div>`;
+                } else if (el.type === 'icon') {
+                    elDom.innerHTML = `<i class="fa-solid fa-star pointer-events-none"></i>`;
+                } else if (el.type === 'line-solid') {
+                    elDom.style.borderTop = `2px solid ${el.color}`;
+                    elDom.style.backgroundColor = 'transparent';
+                } else if (el.type === 'line-dashed') {
+                    elDom.style.borderTop = `2px dashed ${el.color}`;
+                    elDom.style.backgroundColor = 'transparent';
+                } else {
+                    elDom.innerText = el.text || '';
+                }
+
+                elDom.onmousedown = (e) => {
+                    if (isPreviewMode) return;
+                    e.stopPropagation();
+                    selectElement(el.id);
+                    draggingElementId = el.id;
+                    const rect = canvasEl.getBoundingClientRect();
+                    dragOffsetX = e.clientX - rect.left - el.x;
+                    dragOffsetY = e.clientY - rect.top - el.y;
+                };
+
+                elDom.ontouchstart = (e) => {
+                    if (isPreviewMode) return;
+                    e.stopPropagation();
+                    selectElement(el.id);
+                    draggingElementId = el.id;
+                    const rect = canvasEl.getBoundingClientRect();
+                    const touch = e.touches[0];
+                    dragOffsetX = touch.clientX - rect.left - el.x;
+                    dragOffsetY = touch.clientY - rect.top - el.y;
+                };
+
+                canvasElementsEl.appendChild(elDom);
+            });
+        }
+
+        function selectElement(id) {
+            selectedElementId = id;
+            renderCanvas();
+            showPropertiesPanel();
+        }
+
+        function deselectElement(e) {
+            if (e.target === canvasEl || e.target === canvasElementsEl) {
+                selectedElementId = null;
+                renderCanvas();
+                hidePropertiesPanel();
             }
         }
 
-        function deleteProject(name) {
-            if (confirm(`Удалить "${name}"?`)) {
-                delete projects[name];
-                if (currentProjectName === name) {
-                    currentProjectName = null;
-                    document.getElementById('canvas').innerHTML = '';
-                }
-                saveProject();
-                renderProjects();
+        function handleDragging(e) {
+            if (!draggingElementId || isPreviewMode) return;
+            updateElementCoords(e.clientX, e.clientY);
+        }
+
+        function handleTouchDragging(e) {
+            if (!draggingElementId || isPreviewMode) return;
+            const touch = e.touches[0];
+            updateElementCoords(touch.clientX, touch.clientY);
+            e.preventDefault();
+        }
+
+        function updateElementCoords(clientX, clientY) {
+            const project = projects.find(p => p.id === activeProjectId);
+            if (!project) return;
+            const el = project.elements.find(item => item.id === draggingElementId);
+            if (!el) return;
+
+            const rect = canvasEl.getBoundingClientRect();
+            let newX = clientX - rect.left - dragOffsetX;
+            let newY = clientY - rect.top - dragOffsetY;
+
+            newX = Math.max(0, Math.min(canvasEl.offsetWidth - el.width, newX));
+            newY = Math.max(0, Math.min(canvasEl.offsetHeight - el.height, newY));
+
+            el.x = Math.round(newX);
+            el.y = Math.round(newY);
+
+            renderCanvas();
+            fillPropertiesForm();
+        }
+
+        function stopDragging() {
+            if (draggingElementId) {
+                draggingElementId = null;
+                saveToLocalStorage();
             }
         }
 
         function addElement(type) {
-            if (!currentProjectName) {
-                alert("Сначала дважды кликните по проекту слева!");
+            const project = projects.find(p => p.id === activeProjectId);
+            if (!project) {
+                alert('Сначала выберите или создайте проект!');
+                toggleProjectsDrawer();
                 return;
             }
-            projects[currentProjectName].push({ type, x: 50, y: 50, w: 140, h: 80, text: "Блок" });
+
+            let newElement = {
+                id: 'el_' + Date.now(),
+                type: type,
+                text: 'Текст блока',
+                x: 30,
+                y: 30,
+                width: 200,
+                height: 45,
+                bgColor: '#3b82f6',
+                color: '#ffffff',
+                fontFamily: "'Inter', sans-serif",
+                fontSize: 14,
+                zIndex: project.elements.length + 1,
+                radius: 6,
+                src: ''
+            };
+
+            if (type === 'h1') {
+                newElement.text = 'Заголовок';
+                newElement.width = 300;
+                newElement.height = 40;
+                newElement.bgColor = 'transparent';
+                newElement.color = '#0f172a';
+                newElement.fontSize = 22;
+                newElement.fontFamily = "'Poppins', sans-serif";
+            } else if (type === 'h2') {
+                newElement.text = 'Подзаголовок';
+                newElement.width = 250;
+                newElement.height = 35;
+                newElement.bgColor = 'transparent';
+                newElement.color = '#334155';
+                newElement.fontSize = 18;
+            } else if (type === 'paragraph') {
+                newElement.text = 'Текст описания...';
+                newElement.width = 300;
+                newElement.height = 60;
+                newElement.bgColor = 'transparent';
+                newElement.color = '#475569';
+                newElement.fontSize = 14;
+            } else if (type === 'rect') {
+                newElement.width = 200;
+                newElement.height = 100;
+                newElement.bgColor = '#e2e8f0';
+            } else if (type === 'circle') {
+                newElement.width = 80;
+                newElement.height = 80;
+                newElement.bgColor = '#3b82f6';
+                newElement.radius = 40;
+            } else if (type === 'image') {
+                newElement.width = 300;
+                newElement.height = 180;
+                newElement.bgColor = '#cbd5e1';
+                newElement.src = 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=500&q=80';
+            } else if (type === 'video' || type === 'icon' || type === 'line-solid' || type === 'line-dashed') {
+                newElement.width = 250;
+                newElement.height = 40;
+            }
+
+            project.elements.push(newElement);
+            saveToLocalStorage();
+            selectElement(newElement.id);
+        }
+
+        function fillPropertiesForm() {
+            const project = projects.find(p => p.id === activeProjectId);
+            if (!project) return;
+            const el = project.elements.find(item => item.id === selectedElementId);
+            if (!el) return;
+
+            document.getElementById('prop-x').value = el.x;
+            document.getElementById('prop-y').value = el.y;
+            document.getElementById('prop-width').value = el.width;
+            document.getElementById('prop-height').value = el.height;
+            document.getElementById('prop-zindex').value = el.zIndex;
+            document.getElementById('prop-radius').value = el.radius || 0;
+            document.getElementById('prop-bg-color').value = el.bgColor !== 'transparent' ? el.bgColor : '#ffffff';
+            document.getElementById('prop-text-color').value = el.color;
+            document.getElementById('prop-font-size').value = el.fontSize;
+            document.getElementById('prop-font-family').value = el.fontFamily;
+            document.getElementById('prop-text-content').value = el.text || '';
+            document.getElementById('prop-src').value = el.src || '';
+
+            const textGroup = document.getElementById('prop-text-group');
+            const fontGroup = document.getElementById('prop-font-group');
+            const mediaGroup = document.getElementById('prop-media-group');
+
+            if (el.type === 'image') {
+                mediaGroup.classList.remove('hidden');
+                textGroup.classList.add('hidden');
+                fontGroup.classList.add('hidden');
+            } else if (['line-solid', 'line-dashed', 'rect', 'circle'].includes(el.type)) {
+                mediaGroup.classList.add('hidden');
+                textGroup.classList.add('hidden');
+                fontGroup.classList.add('hidden');
+            } else {
+                mediaGroup.classList.add('hidden');
+                textGroup.classList.remove('hidden');
+                fontGroup.classList.remove('hidden');
+            }
+        }
+
+        function updateSelectedElement() {
+            const project = projects.find(p => p.id === activeProjectId);
+            if (!project) return;
+            const el = project.elements.find(item => item.id === selectedElementId);
+            if (!el) return;
+
+            el.x = parseInt(document.getElementById('prop-x').value) || 0;
+            el.y = parseInt(document.getElementById('prop-y').value) || 0;
+            el.width = parseInt(document.getElementById('prop-width').value) || 50;
+            el.height = parseInt(document.getElementById('prop-height').value) || 50;
+            el.zIndex = parseInt(document.getElementById('prop-zindex').value) || 1;
+            el.radius = parseInt(document.getElementById('prop-radius').value) || 0;
+            el.bgColor = document.getElementById('prop-bg-color').value;
+            el.color = document.getElementById('prop-text-color').value;
+            el.fontSize = parseInt(document.getElementById('prop-font-size').value) || 14;
+            el.fontFamily = document.getElementById('prop-font-family').value;
+            el.text = document.getElementById('prop-text-content').value;
+            el.src = document.getElementById('prop-src').value;
+
+            saveToLocalStorage();
             renderCanvas();
-            saveProject();
         }
 
-        function renderCanvas() {
-            const canvas = document.getElementById('canvas');
-            canvas.innerHTML = '';
-            if (!currentProjectName || !projects[currentProjectName]) return;
-
-            projects[currentProjectName].forEach((el) => {
-                let div = document.createElement('div');
-                div.className = 'absolute cursor-move border border-dashed border-blue-400 flex items-center justify-center p-2 text-sm';
-                div.style.left = el.x + 'px';
-                div.style.top = el.y + 'px';
-                div.style.width = el.w + 'px';
-                div.style.height = el.h + 'px';
-                
-                if (el.type === 'circle') div.className += ' rounded-full bg-blue-500 text-white';
-                else div.className += ' bg-yellow-100 text-gray-800 font-semibold';
-
-                div.innerHTML = el.text;
-
-                let isDragging = false, startX, startY;
-                div.onmousedown = (e) => {
-                    isDragging = true;
-                    startX = e.clientX - el.x;
-                    startY = e.clientY - el.y;
-                    e.stopPropagation();
-                };
-                window.onmousemove = (e) => {
-                    if (!isDragging) return;
-                    el.x = e.clientX - startX;
-                    el.y = e.clientY - startY;
-                    div.style.left = el.x + 'px';
-                    div.style.top = el.y + 'px';
-                };
-                window.onmouseup = () => { isDragging = false; saveProject(); };
-
-                canvas.appendChild(div);
-            });
-        }
-
-        function saveProject() {
-            localStorage.setItem('cloud_projects', JSON.stringify(projects));
+        function deleteSelectedElement() {
+            if (!selectedElementId) return;
+            const project = projects.find(p => p.id === activeProjectId);
+            if (!project) return;
+            project.elements = project.elements.filter(item => item.id !== selectedElementId);
+            selectedElementId = null;
+            saveToLocalStorage();
+            renderCanvas();
+            hidePropertiesPanel();
         }
 
         function clearCanvas() {
-            if (currentProjectName) {
-                projects[currentProjectName] = [];
+            const project = projects.find(p => p.id === activeProjectId);
+            if (!project) return;
+            if (confirm('Очистить весь холст текущего проекта?')) {
+                project.elements = [];
+                selectedElementId = null;
+                saveToLocalStorage();
                 renderCanvas();
-                saveProject();
+                hidePropertiesPanel();
             }
         }
 
-        function showPreview() {
-            if (!currentProjectName) return alert("Выберите проект!");
-            let win = window.open();
-            win.document.write(`<html><head><title>Превью</title><script src="https://cdn.tailwindcss.com"></script></head><body class="bg-white flex items-center justify-center h-screen"><div class="relative w-[800px] h-[600px] border">`);
-            projects[currentProjectName].forEach(el => {
-                let bg = el.type === 'circle' ? 'rounded-full bg-blue-500 text-white' : 'bg-yellow-100';
-                win.document.write(`<div class="absolute flex items-center justify-center ${bg}" style="left:${el.x}px; top:${el.y}px; width:${el.w}px; height:${el.h}px;">${el.text}</div>`);
-            });
-            win.document.write(`</div></body></html>`);
+        function togglePreview() {
+            isPreviewMode = !isPreviewMode;
+            const btnText = document.getElementById('preview-btn-text');
+            const previewBtn = document.getElementById('preview-btn');
+            
+            if (isPreviewMode) {
+                btnText.textContent = 'Редактор';
+                previewBtn.classList.remove('bg-indigo-600', 'hover:bg-indigo-700');
+                previewBtn.classList.add('bg-emerald-600', 'hover:bg-emerald-700');
+                canvasEl.classList.add('canvas-preview-mode');
+                hidePropertiesPanel();
+                hideProjectsDrawer();
+            } else {
+                btnText.textContent = 'Предпросмотр';
+                previewBtn.classList.remove('bg-emerald-600', 'hover:bg-emerald-700');
+                previewBtn.classList.add('bg-indigo-600', 'hover:bg-indigo-700');
+                canvasEl.classList.remove('canvas-preview-mode');
+            }
+            renderCanvas();
         }
 
-        renderProjects();
+        function saveCurrentProjectState() {
+            saveToLocalStorage();
+            alert('✅ Проект успешно сохранен!');
+        }
+
+        function escapeHtml(str) {
+            return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+        }
     </script>
 </body>
 </html>
